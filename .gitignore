@@ -2,7 +2,3 @@
 __pycache__/
 build/
 dist/
-main.py
-layer.py
-layerBlend.py
-matrixOperationsO.py
