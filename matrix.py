@@ -23,7 +23,8 @@ def GUI():
 
     path1 = tk.Entry(window, width=53)
     path1.place(x=110, y=25)
-    path1.insert(0, '')
+    path1.insert(0,
+                 'C:/Users/xkz/PycharmProjects/图片/软膜+高清UV卷材3.2米+内光模式+缝边（内框尺寸）#129.00_145.00#1#国兵广告#国兵广告#18014398510459029#18014398513464524.jpg')
 
     label2 = tk.Label(window, text='生成路径：')
     label2.place(x=10, y=65)
@@ -33,7 +34,7 @@ def GUI():
 
     path2 = tk.Entry(window, width=53)
     path2.place(x=110, y=65)
-    path2.insert(0, '')
+    path2.insert(0, 'C:/Users/xkz/PycharmProjects/图片/新建文件夹')
 
     label3 = tk.Label(window, text='阈值模板：')
     label3.place(x=10, y=105)
@@ -159,8 +160,7 @@ def savefiles(path):
 
 
 def operations(path1, path2, threshold, distribution, sideC, midC, sideM, midM, sideY, midY, sideK, midK, counts, countd, countt,
-               countq,
-               button):
+               countq, button):
     if not Path(path2).is_dir():
         os.makedirs(path2)
     if not Path(path1).is_file():
@@ -219,14 +219,14 @@ class OperationsThread(threading.Thread):
         self.path2 = path2
         self.threshold = threshold
         self.distribution = distribution
-        self.sideC = round(int(sideC) / 10, 1)
-        self.midC = round(int(midC) / 10, 1)
-        self.sideM = round(int(sideM) / 10, 1)
-        self.midM = round(int(midM) / 10, 1)
-        self.sideY = round(int(sideY) / 10, 1)
-        self.midY = round(int(midY) / 10, 1)
-        self.sideK = round(int(sideK) / 10, 1)
-        self.midK = round(int(midK) / 10, 1)
+        self.sideC = round(int(sideC), 1)
+        self.midC = round(int(midC), 1)
+        self.sideM = round(int(sideM), 1)
+        self.midM = round(int(midM), 1)
+        self.sideY = round(int(sideY), 1)
+        self.midY = round(int(midY), 1)
+        self.sideK = round(int(sideK), 1)
+        self.midK = round(int(midK), 1)
         self.counts = int(counts)
         self.countd = int(countd)
         self.countt = int(countt)
@@ -234,9 +234,8 @@ class OperationsThread(threading.Thread):
         self.button = button
 
     def run(self):
-        message = matrixOperations.generate(self.path1, self.path2, self.sideC, self.midC, self.sideM, self.midM, self.sideY,
-                                            self.midY,
-                                            self.sideK, self.midK, self.counts, self.countd, self.countt, self.countq)
+        message = matrixOperations.generate_attributes(self.path1, self.path2, self.sideC, self.midC, self.sideM, self.midM, self.sideY,
+                                                       self.midY, self.sideK, self.midK, self.counts, self.countd, self.countt, self.countq)
         self.button['text'] = "生成"
         self.button.place(x=450, y=260)
         tk.messagebox.showinfo('信息', message)
