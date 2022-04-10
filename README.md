@@ -1,1 +1,0 @@
-# Image-Filter-Sampler-CMYK
