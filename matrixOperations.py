@@ -380,22 +380,22 @@ def generate_count_step_mode_4(mid1, mid2, mid3, mid4, count):
 # 输入参数：sideX, midX 都是百分比，如sideC是10%，则 sideC = 0.1。sideX和midX默认值为0，当四个通道都是0的时候，图像不变。
 def generate_one_image(image_data, sideC, midC, sideM, midM, sideY, midY, sideK, midK):
     return_data = image_data.copy()
-    if (sideC != 0.0) | (midC != 0.0):
+    if (sideC != 0.0) or (midC != 0.0):
         klc, blc, krc, brc = generate_function([0, sideC], [127, midC], [255, sideC])
         return_data[:, :, 0] = np.where(return_data[:, :, 0] < 127, (klc * return_data[:, :, 0] + blc + 1) * return_data[:, :, 0],
                                         np.where((krc * return_data[:, :, 0] + brc + 1) * return_data[:, :, 0] > 255, 255,
                                                  (krc * return_data[:, :, 0] + brc + 1) * return_data[:, :, 0]))
-    if (sideM != 0.0) | (midM != 0.0):
+    if (sideM != 0.0) or (midM != 0.0):
         klm, blm, krm, brm = generate_function([0, sideM], [127, midM], [255, sideM])
         return_data[:, :, 1] = np.where(return_data[:, :, 1] < 127, (klm * return_data[:, :, 1] + blm + 1) * return_data[:, :, 1],
                                         np.where((krm * return_data[:, :, 1] + brm + 1) * return_data[:, :, 1] > 255, 255,
                                                  (krm * return_data[:, :, 1] + brm + 1) * return_data[:, :, 1]))
-    if (sideY != 0.0) | (midY != 0.0):
+    if (sideY != 0.0) or (midY != 0.0):
         kly, bly, kry, bry = generate_function([0, sideY], [127, midY], [255, sideY])
         return_data[:, :, 2] = np.where(return_data[:, :, 2] < 127, (kly * return_data[:, :, 2] + bly + 1) * return_data[:, :, 2],
                                         np.where((kry * return_data[:, :, 2] + bry + 1) * return_data[:, :, 2] > 255, 255,
                                                  (kry * return_data[:, :, 2] + bry + 1) * return_data[:, :, 2]))
-    if (sideK != 0.0) | (midK != 0.0):
+    if (sideK != 0.0) or (midK != 0.0):
         klk, blk, krk, brk = generate_function([0, sideK], [127, midK], [255, sideK])
         return_data[:, :, 3] = np.where(return_data[:, :, 3] < 127, (klk * return_data[:, :, 3] + blk + 1) * return_data[:, :, 3],
                                         np.where((krk * return_data[:, :, 3] + brk + 1) * return_data[:, :, 3] > 255, 255,
