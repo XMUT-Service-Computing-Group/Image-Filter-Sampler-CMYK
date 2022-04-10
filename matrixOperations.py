@@ -4,7 +4,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-# 生成参数函数
 from PIL import Image
 
 Image.MAX_IMAGE_PIXELS = None
@@ -12,10 +11,13 @@ Image.MAX_IMAGE_PIXELS = None
 
 def generate_attributes(path, sideC, midC, sideM, midM, sideY, midY, sideK, midK, counts, countd, countt, countq):
     t1 = cv2.getTickCount()
+    if Image.open(path).mode != 'CMYK':
+        return '图片需要是CMYK格式！'
     image_data = np.array(Image.open(path))
     result = []
     attrArray = []
     attrArrays = []
+    # 当单色模式的生成数量大于0
     if counts > 0:
         allCount, allStep = generate_count_step(sideC, midC, sideM, midM, sideY, midY, sideK, midK, counts, 1)
         for i in range(4):
@@ -29,7 +31,7 @@ def generate_attributes(path, sideC, midC, sideM, midM, sideY, midY, sideK, midK
                     generate_attributes_array(-sideC, -midC, -sideM, -midM, -sideY, -midY, -sideK, -midK, i, j, round(allStep[i])))
         attrArray.append(attrArrays)
         results = random.sample(range(0, counts * 4), counts)
-        result.append(results)
+        result.append(result_check(results, counts * 4))
     attrArrayd = []
     if countd > 0:
         allCount, allStep = generate_count_step(sideC, midC, sideM, midM, sideY, midY, sideK, midK, countd, 2)
@@ -51,7 +53,7 @@ def generate_attributes(path, sideC, midC, sideM, midM, sideY, midY, sideK, midK
                     attrArrayd.append(np.sum([np.array(attrArrayss[index]), np.array(attrArrayss[index + 1])], axis=0))
         attrArray.append(attrArrayd)
         resultd = random.sample(range(0, countd * 8), countd)
-        result.append(resultd)
+        result.append(result_check(resultd, countd * 8))
     attrArrayt = []
     if countt > 0:
         allCount, allStep = generate_count_step(sideC, midC, sideM, midM, sideY, midY, sideK, midK, countt, 3)
@@ -89,7 +91,7 @@ def generate_attributes(path, sideC, midC, sideM, midM, sideY, midY, sideK, midK
                         np.sum([np.array(attrArrayss[index]), np.array(attrArrayss[index + 1]), np.array(attrArrayss[index + 2])], axis=0))
         attrArray.append(attrArrayt)
         resultt = random.sample(range(0, countt * 12), countt)
-        result.append(resultt)
+        result.append(result_check(resultt, countt * 12))
     attrArrayq = []
     if countq > 0:
         allCount, allStep = generate_count_step(sideC, midC, sideM, midM, sideY, midY, sideK, midK, countq, 4)
@@ -141,7 +143,7 @@ def generate_attributes(path, sideC, midC, sideM, midM, sideY, midY, sideK, midK
                             np.array(attrArrayss[index + 3])], axis=0))
         attrArray.append(attrArrayq)
         resultq = random.sample(range(0, countq * 16), countq)
-        result.append(resultq)
+        result.append(result_check(resultq, countq * 16))
     generate_all_images(image_data, attrArray, result, path)
     t2 = cv2.getTickCount()
     return str(round((t2 - t1) * 1000 / cv2.getTickFrequency() / 1000, 2)) + '秒'
@@ -158,13 +160,32 @@ def attr_append(attrArrays0, attrArrayss, sideC, midC, sideM, midM, sideY, midY,
     return attrArrays0, attrArrayss
 
 
+def result_check(result, count):
+    result.sort()
+    for i in range(len(result) - 1):
+        # 当当前数字是偶数并且当前数字的下一个数字是这个数字+1
+        if result[i] % 2 == 0 and result[i + 1] == result[i] + 1:
+            temp = random.randint(0, count)
+            # 如果这个数字不在result列表中并且这个数字+1或-1也不在时
+            while True:
+                if temp not in result and temp + 1 not in result and temp - 1 not in result:
+                    result[i] = temp
+                    break
+                else:
+                    temp = random.randint(0, count)
+    return result
+
+
 def generate_attributes_array(sideC, midC, sideM, midM, sideY, midY, sideK, midK, channel, count, step, mode=0):
     attrArray = []
     side = [sideC, sideM, sideY, sideK]
     mid = [midC, midM, midY, midK]
     k = 1
+    # 遍历CMYK四个通道
     for i in range(4):
+        # 当遍历到需要改变的通道
         if i == channel:
+            # 当是四色模式时
             if mode == 4:
                 attrArray.append(round(side[channel] / 100, 2))
                 if mid[channel] < 0:
@@ -182,19 +203,31 @@ def generate_attributes_array(sideC, midC, sideM, midM, sideY, midY, sideK, midK
 
 
 def generate_all_images(image_data, Array, result, path):
+    # 获得文件名并生成文件名的文件夹
     outputpath = os.path.splitext(path)[0]
     if not Path(outputpath).is_dir():
         os.makedirs(outputpath)
+
+    # 将参数列表Array根据下标列表result中的数据生成新的生成参数列表Arrays
     Arrays = []
     for i in range(len(result)):
         for j in range(len(result[i])):
             Arrays.append(Array[i][result[i][j]])
+
+    # 将生成参数列表打印到txt文件中
+    with open(outputpath + '/打样参数.txt', "w") as f:
+        count = 0
+        for arr in Arrays:
+            count = count + 1
+            f.write(str(count) + '#' + str(int(arr[0] * 100)) + ',' + str(int(arr[1] * 100)) + ',' + str(int(arr[2] * 100)) + ',' + str(
+                int(arr[3] * 100)) + ',' + str(int(arr[4] * 100)) + ',' + str(int(arr[5] * 100)) + ',' + str(int(arr[6] * 100)) + ',' + str(
+                int(arr[7] * 100)))
+            f.write('\n')
     count = 0
     for arr in Arrays:
         count = count + 1
         processed_data = generate_one_image(image_data, arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6], arr[7])
-        name = str(count) + '#' + str(int(arr[1] * 100)) + ',' + str(int(arr[3] * 100)) + ',' + str(int(arr[5] * 100)) + ',' + str(
-            int(arr[7] * 100))
+        name = str(count) + '#'
         Image.fromarray(processed_data.astype(np.uint8), mode="CMYK").save(outputpath + '/' + name + ".jpg")
 
 
@@ -347,22 +380,22 @@ def generate_count_step_mode_4(mid1, mid2, mid3, mid4, count):
 # 输入参数：sideX, midX 都是百分比，如sideC是10%，则 sideC = 0.1。sideX和midX默认值为0，当四个通道都是0的时候，图像不变。
 def generate_one_image(image_data, sideC, midC, sideM, midM, sideY, midY, sideK, midK):
     return_data = image_data.copy()
-    if (sideC != 0.0) & (midC != 0.0):
+    if (sideC != 0.0) | (midC != 0.0):
         klc, blc, krc, brc = generate_function([0, sideC], [127, midC], [255, sideC])
         return_data[:, :, 0] = np.where(return_data[:, :, 0] < 127, (klc * return_data[:, :, 0] + blc + 1) * return_data[:, :, 0],
                                         np.where((krc * return_data[:, :, 0] + brc + 1) * return_data[:, :, 0] > 255, 255,
                                                  (krc * return_data[:, :, 0] + brc + 1) * return_data[:, :, 0]))
-    if (sideM != 0.0) & (midM != 0.0):
+    if (sideM != 0.0) | (midM != 0.0):
         klm, blm, krm, brm = generate_function([0, sideM], [127, midM], [255, sideM])
         return_data[:, :, 1] = np.where(return_data[:, :, 1] < 127, (klm * return_data[:, :, 1] + blm + 1) * return_data[:, :, 1],
                                         np.where((krm * return_data[:, :, 1] + brm + 1) * return_data[:, :, 1] > 255, 255,
                                                  (krm * return_data[:, :, 1] + brm + 1) * return_data[:, :, 1]))
-    if (sideY != 0.0) & (midY != 0.0):
+    if (sideY != 0.0) | (midY != 0.0):
         kly, bly, kry, bry = generate_function([0, sideY], [127, midY], [255, sideY])
         return_data[:, :, 2] = np.where(return_data[:, :, 2] < 127, (kly * return_data[:, :, 2] + bly + 1) * return_data[:, :, 2],
                                         np.where((kry * return_data[:, :, 2] + bry + 1) * return_data[:, :, 2] > 255, 255,
                                                  (kry * return_data[:, :, 2] + bry + 1) * return_data[:, :, 2]))
-    if (sideK != 0.0) & (midK != 0.0):
+    if (sideK != 0.0) | (midK != 0.0):
         klk, blk, krk, brk = generate_function([0, sideK], [127, midK], [255, sideK])
         return_data[:, :, 3] = np.where(return_data[:, :, 3] < 127, (klk * return_data[:, :, 3] + blk + 1) * return_data[:, :, 3],
                                         np.where((krk * return_data[:, :, 3] + brk + 1) * return_data[:, :, 3] > 255, 255,
@@ -382,5 +415,4 @@ def generate_function(sideL, mid, sideR):
 
 
 if __name__ == '__main__':
-    a = [1, 1, 1]
-    print(a * [-1, -1, -1])
+    pass
