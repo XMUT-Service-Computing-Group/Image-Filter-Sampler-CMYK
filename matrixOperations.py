@@ -1,6 +1,7 @@
 import os
 import random
 from pathlib import Path
+from time import sleep
 
 import cv2
 import numpy as np
@@ -229,6 +230,7 @@ def generate_all_images(image_data, Array, result, path):
         processed_data = generate_one_image(image_data, arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6], arr[7])
         name = str(count) + '#'
         Image.fromarray(processed_data.astype(np.uint8), mode="CMYK").save(outputpath + '/' + name + ".jpg")
+        sleep(0.5)
 
 
 # 获得每个通道对应的数量和步长
